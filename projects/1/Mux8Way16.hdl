@@ -20,5 +20,18 @@ CHIP Mux8Way16 {
     OUT out[16];
 
     PARTS:
-    //// Replace this comment with your code.
+    // Same logic here as the 4-way, but we have another selection bit to handle options
+
+    // First, get the Mux16 of all the inputs using sel[0] to choose between states. Turns 2^3 outputs into 2^2 outputs.
+    Mux16(a=a, b=b, sel=sel[0], out=mux01);
+    Mux16(a=c, b=d, sel=sel[0], out=mux02);
+    Mux16(a=e, b=f, sel=sel[0], out=mux03);
+    Mux16(a=g, b=h, sel=sel[0], out=mux04);
+    
+    // Second, pipe the 2^2 outputs of the above Mux16 operations into another round of Mux16 comparisons using the sel[1] bit to choose between states. Turns 2^2 outputs into 2^1 outputs.
+    Mux16(a=mux01, b=mux02, sel=sel[1], out=mux11);
+    Mux16(a=mux03, b=mux04, sel=sel[1], out=mux12);
+
+    // Finally, pipe the 2^1 outputs of the previous 2 Mux16 operations into one last Mux16 comparison using the sel[2] bit to choose between states. Turns 2^1 outputs into 2^0 outputs (1).
+    Mux16(a=mux11, b=mux12, sel=sel[2], out=out);
 }
