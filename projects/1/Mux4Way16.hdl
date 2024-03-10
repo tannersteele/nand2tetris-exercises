@@ -12,7 +12,22 @@
 CHIP Mux4Way16 {
     IN a[16], b[16], c[16], d[16], sel[2];
     OUT out[16];
-    
+
+    /**
+    * This one took a fair bit of time to understand, but it's fairly simple when drawn out.
+    * 1. Reuse the 16-bit multiplexers created previously, and start off by inputting a,b,c,d into 2 respective multiplexers.
+    * 2. For the first 2 multiplexers, the sel[0] bit should be used, since this is the first 'round' of comparisons we're handling.
+    *    NOTE: This can activate both gates, and that is expected. The 2nd bit (sel[1]) will help narrow it down.
+    * 3. Add a 3rd multiplexer which takes the outputs from the previous 2 multiplexers, and uses the sel[1] bit.
+    *    NOTE: This sel[1] bit narrows down the original 2^2 branching to 2^1 (required for a single bit multiplexer). Which produces a single bit output.
+    *
+    * For example, if 'sel' = {0,0}: and 'a' = 1: 
+    *    First multiplexer (1st bit sel) is set to use the LOW-state which passes through the state of the 'a' pin.
+    *    Second multiplexer (1st bit sel) is not active at all, since only 'a' is HIGH.
+    *    Third multiplexer (2nd bit sel) also uses the LOW-state which is tied to the 'a' pin through the first multiplexer, which results in our output of 1 
+    */
     PARTS:
-    //// Replace this comment with your code.
+    Mux16(a=a, b=b, sel=sel[0], out=muxa);
+    Mux16(a=c, b=d, sel=sel[0], out=muxb);
+    Mux16(a=muxa, b=muxb, sel=sel[1], out=out);
 }
