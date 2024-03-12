@@ -11,5 +11,13 @@ CHIP FullAdder {
         carry;   // Left bit of a + b + c
 
     PARTS:
-    //// Replace this comment with your code.
+    // Pass inputs a,b to the first half-adder 
+    HalfAdder(a=a, b=b, sum=suma, carry=carrya);
+
+    // Compare the 'sum' output from the first half adder with the state of 'c'
+    // Will ensure the sum column is not 'HIGH' if (a^b), but supports (a^b)&c case where sum should be 'LOW'
+    HalfAdder(a=c, b=suma, sum=sum, carry=carryb);
+
+    // If any carry bit is active from either half-adder, set our carry column to 'HIGH'
+    Or(a=carrya, b=carryb, out=carry);
 }
