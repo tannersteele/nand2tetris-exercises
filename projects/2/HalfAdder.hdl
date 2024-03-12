@@ -11,5 +11,10 @@ CHIP HalfAdder {
         carry;  // Left bit of a + b
 
     PARTS:
-    //// Replace this comment with your code.
+    // For the sum (LSB - rightmost bit), we only want it to be HIGH when a^b=1
+    // This simulates the process of a carryover bit
+    Xor(a=a, b=b, out=sum);
+
+    // For the carry (MSB - leftmost bit), we only want it to be HIGH when a&b=1
+    And(a=a, b=b, out=carry);
 }
