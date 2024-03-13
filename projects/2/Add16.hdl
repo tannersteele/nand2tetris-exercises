@@ -11,7 +11,11 @@ CHIP Add16 {
     OUT out[16];
 
     PARTS:
-    // Carry bit gets moved down the whole chain
+
+    // When you add 2 binary numbers, you start off with a half-adder which handles the original a[0]+b[0] operation.
+    // Post operation: you might have a carry, especially if you added {1,1} in the above half-adder operation. This would result in a carry of 1 and sum of 0.
+    // Next up you can take advantage of full-adders to account for the additional carry bit, which effectively means you're always adding together 3 binary inputs {a,b,c}.
+    // In this case, 'carry{x}' will always be the carry bit, and it will continuously move down the chain until it's not relevant for this bit-width (carry14)
     HalfAdder(a=a[0], b=b[0], sum=out[0], carry=carry0);
 
     FullAdder(a=a[1], b=b[1], c=carry0, sum=out[1], carry=carry1);
