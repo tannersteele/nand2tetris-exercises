@@ -11,5 +11,6 @@ CHIP Inc16 {
     OUT out[16];
 
     PARTS:
-    //// Replace this comment with your code.
+    // Since we have a single input, it will always be adding a 16 bit (A) number with: %B0000000000000001 (B)
+    Add16(a=in, b[0]=true, out=out);
 }
