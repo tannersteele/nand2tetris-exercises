@@ -49,13 +49,13 @@ CHIP ALU {
     Mux16(a=x, b=false, sel=zx, out=outzx);
 
     // if (zy == 1): y = 0
-    Mux16(a=false, b=y, sel=zy, out=outzy);
+    Mux16(a=y, b=false, sel=zy, out=outzy);
 
     //---------------------------------------
 
     // Pre-calculate results required for nx, ny
-    Not16(in=outzx, out=notx)
-    Not16(in=outzy, out=noty)
+    Not16(in=outzx, out=notx);
+    Not16(in=outzy, out=noty);
 
     // if (nx == 1): x = !x
     Mux16(a=outzx, b=notx, sel=nx, out=outnx);
@@ -71,12 +71,24 @@ CHIP ALU {
     // Pre-calculate results required for (x & y)
     And16(a=outnx, b=outny, out=fand);
 
-    // if (f==1): x + y else x & y
+    // if (f == 1): x + y else x & y
     Mux16(a=fand, b=fadd, sel=f, out=outf);
 
     //---------------------------------------
 
+    // Pre-calculate results required for (out != out)
     Not16(in=outf, out=notno);
-    Mux16(a=outf, b=notno, sel=no, out=out);
 
+    // if (no == 1): out = !out
+    Mux16(a=outf, b=notno, sel=no, out=out,              // The output here is the proper interface out (out output)
+                                   out[0..7]=zrbitset1,  // Fetch the first 8 bits for zr comparison (zr output)
+                                   out[8..15]=zrbitset2, // Fetch the last 8 bits for zr comparison  (zr output)
+                                   out[15]=ng);          // Fetch the MSB to see if the number is negative (ng output)
+
+    // if (out == 0): return 1 else 0
+    Or8Way(in=zrbitset1, out=outzr1);
+    Or8Way(in=zrbitset2, out=outzr2);
+    Or(a=outzr1, b=outzr2, out=outzr3);
+    Not(in=outzr3, out=zr); // Must NOT the result from both comparisons to properly format result specified above
+                            // changing the interface would remove this requirement + act as an optimization
 }
