@@ -46,10 +46,10 @@ CHIP ALU {
     //---------------------------------------
     
     // if (zx == 1): x = 0
-    Mux16(a=x, b=false, sel=zx, out=outzx)
+    Mux16(a=x, b=false, sel=zx, out=outzx);
 
     // if (zy == 1): y = 0
-    Mux16(a=false, b=y, sel=zy, out=outzy)
+    Mux16(a=false, b=y, sel=zy, out=outzy);
 
     //---------------------------------------
 
@@ -58,10 +58,25 @@ CHIP ALU {
     Not16(in=outzy, out=noty)
 
     // if (nx == 1): x = !x
-    Mux16(a=outzx, b=notx, sel=nx, out=outnx)
+    Mux16(a=outzx, b=notx, sel=nx, out=outnx);
 
     // if (ny == 1): y = !y
-    Mux16(a=outzy, b=noty, sel=ny, out=outny)
+    Mux16(a=outzy, b=noty, sel=ny, out=outny);
 
     //---------------------------------------
+
+    // Pre-calculate results required for (x + y)
+    Add16(a=outnx, b=outny, out=fadd);
+
+    // Pre-calculate results required for (x & y)
+    And16(a=outnx, b=outny, out=fand);
+
+    // if (f==1): x + y else x & y
+    Mux16(a=fand, b=fadd, sel=f, out=outf);
+
+    //---------------------------------------
+
+    Not16(in=outf, out=notno);
+    Mux16(a=outf, b=notno, sel=no, out=out);
+
 }
