@@ -13,5 +13,40 @@ CHIP RAM64 {
     OUT out[16];
 
     PARTS:
-    //// Replace this comment with your code.
+    // Composed of 8x RAM8 chips
+    // Demultiplex first 3 bits with address to see which RAM8 chip we should pass remaining bits to
+    DMux8Way(in=load, sel=address[0..2],
+        a=ram0,
+        b=ram1,
+        c=ram2,
+        d=ram3,
+        e=ram4,
+        f=ram5,
+        g=ram6,
+        h=ram7
+    );
+
+    // Use the remaining 3 bits to properly address RAM8 registers (2^3 = 8)
+    RAM8(in=in, load=ram0, address=address[3..5], out=out0);
+    RAM8(in=in, load=ram1, address=address[3..5], out=out1);
+    RAM8(in=in, load=ram2, address=address[3..5], out=out2);
+    RAM8(in=in, load=ram3, address=address[3..5], out=out3);
+    RAM8(in=in, load=ram4, address=address[3..5], out=out4);
+    RAM8(in=in, load=ram5, address=address[3..5], out=out5);
+    RAM8(in=in, load=ram6, address=address[3..5], out=out6);
+    RAM8(in=in, load=ram7, address=address[3..5], out=out7);
+
+    // Join the register outputs back a branchable solution that aligns with original input
+    Mux8Way16(
+        a=out0,
+        b=out1,
+        c=out2,
+        d=out3,
+        e=out4,
+        f=out5,
+        g=out6,
+        h=out7,
+        sel=address[0..2],
+        out=out
+    );
 }
