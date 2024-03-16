@@ -14,5 +14,19 @@ CHIP PC {
     OUT out[16];
     
     PARTS:
-    //// Replace this comment with your code.
+
+    // Generate in(t)+1 for 'inc' flag
+    Inc16(in=outregister, out=incout);
+
+    Mux16(a=outregister, b=incout, sel=inc, out=outmuxa);  //Either increment or keep normal based on 'inc' control bit 
+    Mux16(a=outmuxa, b=in, sel=load, out=outmuxb);         //Either load or don't, based on 'load' control bit
+    Mux16(a=outmuxb, b=false, sel=reset, out=outmuxc);     //Either set '0' or keep normal based on 'reset' control bit (b=false will pass 0)
+
+    // If any control bits are active, we're performing a 'load' operation
+    // If all control bits are inactive, we're just reading the current output from the register
+    Or(a=inc, b=reset, out=outora);
+    Or(a=outora, b=load, out=outorb);
+    
+    // Input: the output from the computation we processed above with the proper control bit 
+    Register(in=outmuxc, load=outorb, out=outregister, out=out); 
 }
