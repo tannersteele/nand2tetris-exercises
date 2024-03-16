@@ -13,6 +13,7 @@ CHIP RAM8 {
     OUT out[16];
 
     PARTS:
+    // Deserialize the address passed (3 bit number 000->111) into a set of standalone outputs
     DMux8Way(in=load, sel=address, 
         a=addr0,
         b=addr1,
@@ -24,6 +25,7 @@ CHIP RAM8 {
         h=addr7
     );
 
+    // Map each standalone output to an individual register
     Register(in=in, load=addr0, out=reg0);
     Register(in=in, load=addr1, out=reg1);
     Register(in=in, load=addr2, out=reg2);
@@ -33,6 +35,7 @@ CHIP RAM8 {
     Register(in=in, load=addr6, out=reg6);
     Register(in=in, load=addr7, out=reg7);
 
+    // Join the register outputs back a branchable solution that aligns with original input
     Mux8Way16(
         a=reg0,
         b=reg1,
