@@ -13,5 +13,7 @@ CHIP Bit {
     OUT out;
 
     PARTS:
-    //// Replace this comment with your code.
+    // DFF's output is connected to Mux's input since that output will remain active until load is passed 'HIGH' again
+    Mux(a=dffout, b=in, sel=load, out=muxout);
+    DFF(in=muxout, out=dffout, out=out);
 }
