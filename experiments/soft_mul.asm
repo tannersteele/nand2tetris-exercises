@@ -9,6 +9,10 @@
     D=M         // Load value from R1 into D register
     @i
     M=D         // Set iterator register in R1's register
+    @R2
+    M=0         // Clear the R2 register
+    @sum
+    M=0         // Clear the sum register
 
 (LOOPBEGIN)
     @i
