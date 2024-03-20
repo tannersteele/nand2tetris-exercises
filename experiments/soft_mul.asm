@@ -31,5 +31,5 @@
     M=D         // Set R2 register contents to running sum
 
 (END)
-    @END
+    @END        // Loop forever to avoid encountering downstream instructions
     0;JMP
