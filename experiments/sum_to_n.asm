@@ -26,7 +26,7 @@
 (LOOP_END)
 	@sum
 	D=M
-	@R2
+	@R1
 	M=D
 (STOP)
 	@STOP
