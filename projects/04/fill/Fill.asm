@@ -20,7 +20,7 @@ M=D
 M=0
 
 (LOOPSTART)
-	@24575
+	@24575           // RAM[24575] represents end of screen buffer. We do NOT want to overflow here.
 	D=M
 	@OVERFLOWDETECTED
 	D;JLT
