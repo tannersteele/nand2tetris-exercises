@@ -30,6 +30,14 @@
 //(OUTERLOOP)
 
 
+(SETBLACK)      // this JMP is a bit redundant, but helps illustrate how "scope" isn't a concept here
+	@PIXELCOLOR
+	M=-1
+	@INNERLOOP
+	0;JMP
+//(SETBLACK)
+
+
 (INNERLOOP)
 	@PIXELCOLOR
 	D=M         // set D-register to pixel color we're using 0 or -1
@@ -48,11 +56,3 @@
 	D;JGT
 @INNERLOOP
 0;JMP
-
-
-(SETBLACK)
-	@PIXELCOLOR
-	M=-1
-	@INNERLOOP
-	0;JMP
-//(SETBLACK)
