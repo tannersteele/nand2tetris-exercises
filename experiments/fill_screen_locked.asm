@@ -11,7 +11,7 @@
 // NOTE: In this implementation, the computer will be locked populating the screen with either color until the entire
 //       screen is either black or white.
 
-(OUTERLOOP)
+(CHECKINPUT)
 	@SCREEN
 	D=A
 	@SCREENPTR
@@ -25,20 +25,20 @@
 	@SETBLACK
 	D;JNE
 	
-	@INNERLOOP
+	@FILLSCREEN
 	0;JMP
-//(OUTERLOOP)
+//(CHECKINPUT)
 
 
 (SETBLACK)      // this JMP is a bit redundant, but helps illustrate how "scope" isn't a concept here
 	@PIXELCOLOR
 	M=-1
-	@INNERLOOP
+	@FILLSCREEN
 	0;JMP
 //(SETBLACK)
 
 
-(INNERLOOP)
+(FILLSCREEN)
 	@PIXELCOLOR
 	D=M         // set D-register to pixel color we're using 0 or -1
 	
@@ -52,7 +52,7 @@
 	
 	@24575      // fetch constant for the LAST register in the screen buffer, and ensure SCREENPTR-24575 is <= 0 to continue
 	D=D-A
-	@OUTERLOOP
+	@CHECKINPUT
 	D;JGT
-@INNERLOOP
+@FILLSCREEN
 0;JMP
