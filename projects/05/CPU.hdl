@@ -32,5 +32,8 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-	//// Replace this comment with your code.
+    // Determine if it's either an A or C instruction based on MSB
+    Not(in=instruction[15], out=useAInstruction);
+    Or(a=instruction[15], b=false, out=useCInstruction);
+
 }
