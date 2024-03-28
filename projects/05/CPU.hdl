@@ -36,4 +36,33 @@ CHIP CPU {
     Not(in=instruction[15], out=useAInstruction);
     Or(a=instruction[15], b=false, out=useCInstruction);
 
+    //Register logic here
+
+    ALU(
+        x=dRegisterOut,
+        y=aOrMInstructionMuxOut,
+        zx=instruction[11],
+        nx=instruction[10],
+        zy=instruction[9],
+        ny=instruction[8],
+        f=instruction[7],
+        no=instruction[6],
+        zr=aluZeroOut,
+        ng=aluNegativeOut,
+        out=outM,
+        out=aluOut
+    );
+
+    And(a=aluNegativeOut, b=instruction[2], out=outLessThan);
+    And(a=aluZeroOut, b=instruction[1], out=outEqualTo);
+    
+    Or(a=aluZeroOut, b=aluNegativeOut, out=outAluZeroOrNeg);
+    Not(in=outAluZeroOrNeg, out=outNotAluZeroOrNeg); // Lazy nor gate
+    And(a=outNotAluZeroOrNeg, b=instruction[0], out=outGreaterThan);
+
+    Or(a=outLessThan, b=outEqualTo, out=outLessThanEqualTo);
+    Or(a=outLessThanEqualTo, b=outGreaterThan, out=pcLoadBit);
+    Not(in=pcLoadBit, out=pcIncBit);
+
+    PC(in=outARegister, reset=reset, load=pcLoadBit, inc=pcIncBit, out[0..14]=pc); // Only need 15 bits, max 32K i-cache
 }
