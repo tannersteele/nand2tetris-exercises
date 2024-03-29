@@ -33,22 +33,25 @@ CHIP CPU {
 
     PARTS:
     // Determine if it's either an A or C instruction based on MSB
+    Not(in=instruction[15], out=useAInstruction);
     Or(a=instruction[15], b=false, out=useCInstruction);
 
-    And(a=useCInstruction, b=instruction[5], out=writeCInstruction);
-    Mux16(a=instruction, b=aluOut, sel=writeCInstruction, out=registerInputA);
+    And(a=useCInstruction, b=instruction[5], out=writeCInstruction); // Active if C-instruction, and writing to A register
+    Or(a=useAInstruction, b=writeCInstruction, out=writeARegister);  // If it's a C-instruction writing to A register, or just a plain old A-instruction
+    Mux16(a=instruction, b=aluOut, sel=writeCInstruction, out=registerInputA); // Either use instruction or output of ALU based on if we're writing a C instruction or not
 
-    Not(in=useCInstruction, out=useAInstruction);
-    Or(a=instruction[5], b=useAInstruction, out=writeARegister);
-    ARegister(in=registerInputA, load=writeARegister, out=aRegisterOut);
+    // Output instruction directly to 15-bit mem address output of chip, and also pass output to program counter to potentially increment
+    ARegister(in=registerInputA, load=writeARegister, out[0..14]=addressM, out=outARegister); 
 
-    And(a=useCInstruction, b=instruction[4], out=useCInstructionAndDDest);
-    DRegister(in=aluOut, load=useCInstructionAndDDest, out=dRegisterOut);
-    Mux16(a=aRegisterOut, b=inM, sel=instruction[12], out=aOrMInstructionMuxOut);
+    And(a=useCInstruction, b=instruction[4], out=useCInstructionAndDDest); // Make sure we're using a C instruction + writing to D-register
+    DRegister(in=aluOut, load=useCInstructionAndDDest, out=dRegisterOut); // Write to D-Register if above is true, pass output to ALU
+    Mux16(a=outARegister, b=inM, sel=instruction[12], out=aOrMInstructionMuxOut); // Determine if we're performing A or M operations based on 'a' bit
+
+    And(a=useCInstruction, b=instruction[3], out=writeM); // If we're using a C-instruction and the destination is memory - directly output that
 
     ALU(
-        x=dRegisterOut,
-        y=aOrMInstructionMuxOut,
+        x=dRegisterOut, // Always pass along value of D register for ALU operations
+        y=aOrMInstructionMuxOut, // Already pre-determined by opcode for control bits
         zx=instruction[11],
         nx=instruction[10],
         zy=instruction[9],
@@ -61,16 +64,21 @@ CHIP CPU {
         out=aluOut
     );
 
-    And(a=aluNegativeOut, b=instruction[2], out=outLessThan);
-    And(a=aluZeroOut, b=instruction[1], out=outEqualTo);
+    And(a=aluNegativeOut, b=instruction[2], out=outLessThan); // if negative number + leftmost jump bit is active => output 1
+    And(a=aluZeroOut, b=instruction[1], out=outEqualTo); // if zero + middle jump bit is active => output 1
     
+    // DIY NOR gate to handle if outputs from the ALU are neither zero or negatve (which means we have a positive integer) 
     Or(a=aluZeroOut, b=aluNegativeOut, out=outAluZeroOrNeg);
-    Not(in=outAluZeroOrNeg, out=outNotAluZeroOrNeg); // Lazy nor gate
+    Not(in=outAluZeroOrNeg, out=outNotAluZeroOrNeg);
     And(a=outNotAluZeroOrNeg, b=instruction[0], out=outGreaterThan);
 
+    // If any of the above cases are true, we should activate the load bit!
     Or(a=outLessThan, b=outEqualTo, out=outLessThanEqualTo);
     Or(a=outLessThanEqualTo, b=outGreaterThan, out=pcLoadBit);
-    Not(in=pcLoadBit, out=pcIncBit);
 
-    PC(in=outARegister, reset=reset, load=pcLoadBit, inc=pcIncBit, out[0..14]=pc); // Only need 15 bits, max 32K i-cache
+    // Silly missing link that I forgot.. We should only be setting the load bit to high on C instructions. Or we'll get strange behavior when working with A instructions.
+    And(a=useCInstruction, b=pcLoadBit, out=loadBitWithCInstruction);
+    Not(in=loadBitWithCInstruction, out=pcIncBit);
+
+    PC(in=outARegister, reset=reset, load=loadBitWithCInstruction, inc=pcIncBit, out[0..14]=pc); // Only need 15 bits, max 32K i-cache
 }
