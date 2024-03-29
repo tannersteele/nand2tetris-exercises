@@ -33,10 +33,18 @@ CHIP CPU {
 
     PARTS:
     // Determine if it's either an A or C instruction based on MSB
-    Not(in=instruction[15], out=useAInstruction);
     Or(a=instruction[15], b=false, out=useCInstruction);
 
-    //Register logic here
+    And(a=useCInstruction, b=instruction[5], out=writeCInstruction);
+    Mux16(a=instruction, b=aluOut, sel=writeCInstruction, out=registerInputA);
+
+    Not(in=useCInstruction, out=useAInstruction);
+    Or(a=instruction[5], b=useAInstruction, out=writeARegister);
+    ARegister(in=registerInputA, load=writeARegister, out=aRegisterOut);
+
+    And(a=useCInstruction, b=instruction[4], out=useCInstructionAndDDest);
+    DRegister(in=aluOut, load=useCInstructionAndDDest, out=dRegisterOut);
+    Mux16(a=aRegisterOut, b=inM, sel=instruction[12], out=aOrMInstructionMuxOut);
 
     ALU(
         x=dRegisterOut,
